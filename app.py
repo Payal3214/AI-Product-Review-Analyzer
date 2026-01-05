@@ -1,22 +1,21 @@
-from rag import load_rag
-
 import streamlit as st
-from rag import load_vectordb, fast_retriever
-from transformers import pipeline
-from langchain_community.llms import HuggingFacePipeline
-from langchain.chains import RetrievalQA
+from rag import load_rag
 
 st.set_page_config(page_title="AI Review Analyzer", layout="wide")
 st.title("Shoes Review Analyzer")
 
 @st.cache_resource
-def load_rag():
-    vectordb = load_vectordb()
-    llm = HuggingFacePipeline(pipeline=pipeline("text2text-generation", model="google/flan-t5-base"))
-    return RetrievalQA.from_chain_type(llm=llm, retriever=fast_retriever(vectordb))
+def load_qa():
+    return load_rag()   # use the safe RAG loader from rag.py
 
-qa = load_rag()
+qa = load_qa()
 
 query = st.text_input("Ask a product question")
-if st.button("Analyze"):
-    st.write(qa.run(query))
+
+if st.button("Analyze") and query:
+    with st.spinner("Analyzing reviews..."):
+        result = qa.run(query)
+        st.success("Done!")
+        st.write(result)
+
+
