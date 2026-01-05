@@ -1,37 +1,63 @@
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
 import os
 import shutil
 
-PERSIST_DIR = "chroma_db"  # your existing persist directory
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
 
-def load_vectordb(force_recreate=False):
-    """
-    Load or create the Chroma vector store.
-    If the embedding function conflicts with an existing collection,
-    optionally delete and recreate it.
-    
-    Args:
-        force_recreate (bool): If True, deletes the existing DB and starts fresh.
-    """
-    embed = OpenAIEmbeddings()  # your embedding function
+PERSIST_DIR = "chroma_db"
 
-    # If you want to force reset or the directory is corrupted
+
+# ---------------- VECTOR STORE LOADER ----------------
+
+def load_vectordb(force_recreate: bool = False):
+    embed = OpenAIEmbeddings()
+
     if force_recreate and os.path.exists(PERSIST_DIR):
         shutil.rmtree(PERSIST_DIR)
-        print(f"[INFO] Deleted existing Chroma DB at {PERSIST_DIR}")
+        print("[INFO] Existing Chroma DB deleted")
 
     try:
-        vectordb = Chroma(persist_directory=PERSIST_DIR, embedding_function=embed)
-        print("[INFO] Loaded existing Chroma vector store")
-    except ValueError as e:
-        # This handles embedding function mismatch
-        print("[WARNING] Embedding function conflict detected. Recreating DB...")
+        vectordb = Chroma(
+            persist_directory=PERSIST_DIR,
+            embedding_function=embed
+        )
+        print("[INFO] Chroma DB loaded successfully")
+    except ValueError:
+        print("[WARNING] Embedding conflict detected. Rebuilding DB...")
         if os.path.exists(PERSIST_DIR):
             shutil.rmtree(PERSIST_DIR)
-        vectordb = Chroma(persist_directory=PERSIST_DIR, embedding_function=embed)
-        print("[INFO] Created new Chroma vector store with current embedding function")
+
+        vectordb = Chroma(
+            persist_directory=PERSIST_DIR,
+            embedding_function=embed
+        )
+        print("[INFO] New Chroma DB created")
 
     return vectordb
 
+
+# ---------------- RETRIEVER ----------------
+
+def fast_retriever():
+    vectordb = load_vectordb()
+    return vectordb.as_retriever(search_kwargs={"k": 4})
+
+
+# ---------------- QA CHAIN ----------------
+
+def load_rag():
+    llm = ChatOpenAI(temperature=0)
+    retriever = fast_retriever()
+
+    qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        chain_type="stuff",
+        return_source_documents=True,
+    )
+    return qa
+
+        
 
