@@ -6,7 +6,7 @@ sys.path.insert(0, os.getcwd())
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "")))
 
 import streamlit as st
-from src.rag import load_vectordb, fast_retriever
+from rag import load_vectordb, fast_retriever
 from transformers import pipeline
 from langchain_community.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
