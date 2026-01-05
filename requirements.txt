@@ -1,13 +1,9 @@
 streamlit
 pandas
-datasets
-sentence-transformers
-transformers
 torch
-spacy
+transformers
+sentence-transformers
+chromadb
 langchain
 langchain-community
-chromadb
-yake
-nltk
-scikit-learn
+huggingface-hub
