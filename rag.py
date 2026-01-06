@@ -4,7 +4,8 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
 
 PERSIST_DIR = "chroma_db"
 
@@ -31,12 +32,29 @@ def load_vectordb(force_recreate=False):
     vectordb.persist()
     return vectordb
 
+
 def load_rag():
-    retriever = load_vectordb().as_retriever(search_kwargs={"k": 4})
+    vectordb = load_vectordb()
+    retriever = vectordb.as_retriever(search_kwargs={"k": 4})
+
     llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
 
-    return RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=retriever,
-        return_source_documents=True
+    prompt = ChatPromptTemplate.from_template(
+        """Use the following context to answer the question.
+If you don't know, say you don't know.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
     )
+
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+    )
+
+    return chain
