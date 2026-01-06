@@ -3,7 +3,7 @@ import shutil
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain.chains import RetrievalQA
+from langchain. chains import RetrievalQA
 
 PERSIST_DIR = "chroma_db"
 
