@@ -1,22 +1,17 @@
 import streamlit as st
 from rag import load_rag
 
+st.set_page_config(page_title="Shoes Review Analyzer")
 
-st.set_page_config(page_title="AI Review Analyzer", layout="wide")
+qa = load_rag()
+
 st.title("Shoes Review Analyzer")
 
-@st.cache_resource
-def load_qa():
-    return load_rag()   # use the safe RAG loader from rag.py
+query = st.text_input("Ask something about your product reviews:")
 
-qa = load_qa()
+if query:
+    result = qa.invoke({"query": query})
+    st.write(result["result"])
 
-query = st.text_input("Ask a product question")
-
-if st.button("Analyze") and query:
-    with st.spinner("Analyzing reviews..."):
-        result = qa.run(query)
-        st.success("Done!")
-        st.write(result)
 
 
