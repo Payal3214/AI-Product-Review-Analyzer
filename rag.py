@@ -1,11 +1,12 @@
 import os
 import shutil
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_openai import ChatOpenAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_experimental.chat_models import RetrievalQA
+from langchain_experimental.retrievers import RetrievalQA  # <- updated
+from langchain_openai import ChatOpenAI
+
 
 
 
